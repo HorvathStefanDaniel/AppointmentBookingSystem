@@ -1,0 +1,18 @@
+:80 {
+    encode gzip zstd
+
+    @api path /api* /index.php*
+    handle @api {
+        root * /var/www/html/public
+        php_fastcgi php:9000
+        file_server
+    }
+
+    handle {
+        root * /var/www/html/public
+        try_files {path} /index.php
+        php_fastcgi php:9000
+        file_server
+    }
+}
+

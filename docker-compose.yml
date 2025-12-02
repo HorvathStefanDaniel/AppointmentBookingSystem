@@ -1,0 +1,71 @@
+name: harba-appointment-booking
+
+services:
+  mysql:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-app}
+      MYSQL_USER: ${MYSQL_USER:-app}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-app}
+    volumes:
+      - mysql-data:/var/lib/mysql
+    ports:
+      - "3307:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  php:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      APP_ENV: ${APP_ENV:-dev}
+      APP_SECRET: ${APP_SECRET:-ChangeMeInProduction}
+      DATABASE_URL: ${DATABASE_URL:-mysql://app:app@mysql:3306/app?serverVersion=8.0}
+      CORS_ALLOW_ORIGIN: ${CORS_ALLOW_ORIGIN:-http://localhost:5173}
+      JWT_PASSPHRASE: ${JWT_PASSPHRASE:-ChangeThisPassphrase}
+    working_dir: /var/www/html
+    volumes:
+      - ./backend:/var/www/html
+      - ./docker/php/composer-cache:/tmp/composer-cache
+    command: php-fpm
+
+  caddy:
+    build:
+      context: docker/caddy
+    depends_on:
+      - php
+    ports:
+      - "8080:80"
+    volumes:
+      - ./backend:/var/www/html
+      - ./docker/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+    environment:
+      CADDY_ADMIN: ":2019"
+
+  frontend:
+    image: node:20-alpine
+    working_dir: /app
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0 --port 5173"
+    volumes:
+      - ./frontend:/app
+      - node-modules:/app/node_modules
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:8080/api}
+    depends_on:
+      - caddy
+
+volumes:
+  mysql-data:
+  node-modules:
+

@@ -1,2 +1,20 @@
-﻿Case Study for Harba Fullstack Developer.pdf
+﻿.DS_Store
+Thumbs.db
+node_modules/
+/vendor/
+/.env
+
+/backend/var/
+/backend/vendor/
+/backend/.env.local
+/backend/.phpunit
+
+/frontend/node_modules/
+/frontend/dist/
+
+/docker/php/composer-cache/
+
+.idea/
+.vscode/
+Case Study for Harba Fullstack Developer.pdf
 TODO.md
