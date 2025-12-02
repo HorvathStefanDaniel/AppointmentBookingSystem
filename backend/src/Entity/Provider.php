@@ -21,17 +21,17 @@ class Provider
     #[ORM\OneToMany(mappedBy: 'provider', targetEntity: ProviderWorkingHours::class, orphanRemoval: true, cascade: ['persist', 'remove'])]
     private Collection $workingHours;
 
-    #[ORM\OneToMany(mappedBy: 'provider', targetEntity: Service::class)]
-    private Collection $services;
-
     #[ORM\OneToMany(mappedBy: 'provider', targetEntity: User::class)]
     private Collection $users;
+
+    #[ORM\OneToMany(mappedBy: 'provider', targetEntity: Booking::class, orphanRemoval: true)]
+    private Collection $bookings;
 
     public function __construct()
     {
         $this->workingHours = new ArrayCollection();
-        $this->services = new ArrayCollection();
         $this->users = new ArrayCollection();
+        $this->bookings = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -81,35 +81,6 @@ class Provider
     }
 
     /**
-     * @return Collection<int, Service>
-     */
-    public function getServices(): Collection
-    {
-        return $this->services;
-    }
-
-    public function addService(Service $service): self
-    {
-        if (!$this->services->contains($service)) {
-            $this->services->add($service);
-            $service->setProvider($this);
-        }
-
-        return $this;
-    }
-
-    public function removeService(Service $service): self
-    {
-        if ($this->services->removeElement($service)) {
-            if ($service->getProvider() === $this) {
-                $service->setProvider(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
      * @return Collection<int, User>
      */
     public function getUsers(): Collection
@@ -132,6 +103,35 @@ class Provider
         if ($this->users->removeElement($user)) {
             if ($user->getProvider() === $this) {
                 $user->setProvider(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Booking>
+     */
+    public function getBookings(): Collection
+    {
+        return $this->bookings;
+    }
+
+    public function addBooking(Booking $booking): self
+    {
+        if (!$this->bookings->contains($booking)) {
+            $this->bookings->add($booking);
+            $booking->setProvider($this);
+        }
+
+        return $this;
+    }
+
+    public function removeBooking(Booking $booking): self
+    {
+        if ($this->bookings->removeElement($booking)) {
+            if ($booking->getProvider() === $this) {
+                $booking->setProvider(null);
             }
         }
 

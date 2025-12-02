@@ -8,7 +8,6 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ServiceRepository::class)]
-#[ORM\Table(indexes: [new ORM\Index(name: 'service_provider_idx', columns: ['provider_id'])])]
 class Service
 {
     #[ORM\Id]
@@ -21,10 +20,6 @@ class Service
 
     #[ORM\Column]
     private ?int $durationMinutes = null;
-
-    #[ORM\ManyToOne(inversedBy: 'services')]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?Provider $provider = null;
 
     #[ORM\OneToMany(mappedBy: 'service', targetEntity: Booking::class, orphanRemoval: true)]
     private Collection $bookings;
@@ -59,18 +54,6 @@ class Service
     public function setDurationMinutes(int $durationMinutes): self
     {
         $this->durationMinutes = $durationMinutes;
-
-        return $this;
-    }
-
-    public function getProvider(): ?Provider
-    {
-        return $this->provider;
-    }
-
-    public function setProvider(?Provider $provider): self
-    {
-        $this->provider = $provider;
 
         return $this;
     }

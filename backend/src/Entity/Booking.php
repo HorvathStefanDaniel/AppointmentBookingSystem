@@ -9,6 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: BookingRepository::class)]
 #[ORM\Index(name: 'booking_service_start_idx', columns: ['service_id', 'start_date_time'])]
 #[ORM\Index(name: 'booking_time_span_idx', columns: ['start_date_time', 'end_date_time'])]
+#[ORM\Index(name: 'booking_provider_start_idx', columns: ['provider_id', 'start_date_time'])]
 class Booking
 {
     public const STATUS_ACTIVE = 'active';
@@ -22,6 +23,10 @@ class Booking
     #[ORM\ManyToOne(inversedBy: 'bookings')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Service $service = null;
+
+    #[ORM\ManyToOne(inversedBy: 'bookings')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Provider $provider = null;
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
@@ -60,6 +65,18 @@ class Booking
     public function setService(?Service $service): self
     {
         $this->service = $service;
+
+        return $this;
+    }
+
+    public function getProvider(): ?Provider
+    {
+        return $this->provider;
+    }
+
+    public function setProvider(?Provider $provider): self
+    {
+        $this->provider = $provider;
 
         return $this;
     }

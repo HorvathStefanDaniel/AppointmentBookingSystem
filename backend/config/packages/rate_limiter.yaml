@@ -1,0 +1,11 @@
+framework:
+    rate_limiter:
+        login:
+            policy: 'sliding_window'
+            limit: 5
+            interval: '1 minute'
+        booking_create:
+            policy: 'token_bucket'
+            limit: 10
+            rate: { interval: '1 minute', amount: 10 }
+

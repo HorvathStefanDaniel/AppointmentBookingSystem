@@ -7,7 +7,8 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ProviderWorkingHoursRepository::class)]
-#[ORM\Table(name: 'provider_working_hours', uniqueConstraints: [new ORM\UniqueConstraint(name: 'provider_weekday_unique', columns: ['provider_id', 'weekday'])])]
+#[ORM\Table(name: 'provider_working_hours')]
+#[ORM\UniqueConstraint(name: 'provider_weekday_unique', columns: ['provider_id', 'weekday'])]
 class ProviderWorkingHours
 {
     #[ORM\Id]
