@@ -25,13 +25,19 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined)
 
 const TOKEN_KEY = 'harba_token'
 
+const getStoredToken = () => localStorage.getItem(TOKEN_KEY)
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [token, setToken] = useState<string | null>(() => localStorage.getItem(TOKEN_KEY))
+  const storedToken = getStoredToken()
+  if (storedToken) {
+    setAuthToken(storedToken)
+  }
+
+  const [token, setToken] = useState<string | null>(storedToken)
   const [claims, setClaims] = useState<AuthClaims | null>(() => {
-    const stored = localStorage.getItem(TOKEN_KEY)
-    if (!stored) return null
+    if (!storedToken) return null
     try {
-      return jwtDecode<AuthClaims>(stored)
+      return jwtDecode<AuthClaims>(storedToken)
     } catch {
       return null
     }

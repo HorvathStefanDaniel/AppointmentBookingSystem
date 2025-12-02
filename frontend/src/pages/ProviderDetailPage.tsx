@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import api from '../api/client'
 import type { Provider, Service, Slot } from '../types'
 import { getErrorMessage } from '../utils/errors'
+import { useToast } from '../components/ToastProvider'
 
 const fetchProviders = async (): Promise<Provider[]> => {
   const { data } = await api.get<Provider[]>('/providers')
@@ -26,6 +27,7 @@ export const ProviderDetailPage = () => {
   const { providerId = '' } = useParams()
   const numericProviderId = Number(providerId)
   const queryClient = useQueryClient()
+  const { addToast } = useToast()
 
   const [selectedService, setSelectedService] = useState<number | null>(null)
   const [from, setFrom] = useState(() => new Date().toISOString().slice(0, 10))
@@ -62,10 +64,13 @@ export const ProviderDetailPage = () => {
     queryFn: fetchServices,
   })
 
+  const slotsQueryKey = ['slots', providerId, selectedService, from, to] as const
+
   const { data: slots, isFetching: slotsLoading } = useQuery({
-    queryKey: ['slots', providerId, selectedService, from, to],
+    queryKey: slotsQueryKey,
     queryFn: () => fetchSlots(providerId, selectedService!, from, to),
     enabled: Boolean(providerId && selectedService && from && to),
+    staleTime: 1000,
   })
 
   const bookSlotMutation = useMutation({
@@ -75,9 +80,27 @@ export const ProviderDetailPage = () => {
         providerId: numericProviderId,
         startDateTime: slotStart,
       }),
+    onMutate: async (slotStart: string) => {
+      await queryClient.cancelQueries({ queryKey: slotsQueryKey })
+      const previousSlots = queryClient.getQueryData<Slot[]>(slotsQueryKey)
+      queryClient.setQueryData<Slot[]>(slotsQueryKey, (old = []) =>
+        old.map((slot) =>
+          slot.start === slotStart ? { ...slot, available: false, optimistic: true } : slot
+        )
+      )
+      return { previousSlots }
+    },
+    onError: (error, _slotStart, context) => {
+      if (context?.previousSlots) {
+        queryClient.setQueryData(slotsQueryKey, context.previousSlots)
+      }
+      addToast(getErrorMessage(error, 'Could not create booking'))
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['bookings', 'me'] })
-      queryClient.invalidateQueries({ queryKey: ['slots', providerId, selectedService, from, to] })
+    },
+    onSettled: async () => {
+      await queryClient.invalidateQueries({ queryKey: slotsQueryKey })
     },
   })
 
@@ -144,12 +167,14 @@ export const ProviderDetailPage = () => {
           {!slotsLoading && slots && slots.length === 0 && <p>No slots found.</p>}
           <div className="grid gap-3 sm:grid-cols-2">
             {slots?.map((slot) => {
-              const disabled = !slot.available || bookSlotMutation.isPending
+              const disabled = !slot.available || slot.optimistic || bookSlotMutation.isPending
               return (
                 <div
                   key={slot.start}
                   className={`flex items-center justify-between rounded border p-3 ${
-                    slot.available ? 'bg-white' : 'bg-slate-100 text-slate-400'
+                    slot.available && !slot.optimistic
+                      ? 'bg-white'
+                      : 'bg-slate-100 text-slate-400'
                   }`}
                 >
                   <div>
@@ -157,11 +182,17 @@ export const ProviderDetailPage = () => {
                     <p className="text-sm text-slate-500">
                       Ends {new Date(slot.end).toLocaleTimeString()}
                     </p>
-                    {!slot.available && <p className="text-xs text-red-500">Booked</p>}
+                    {!slot.available && (
+                      <p className="text-xs text-red-500">
+                        {slot.optimistic ? 'Booking…' : 'Booked'}
+                      </p>
+                    )}
                   </div>
                   <button
                     className="rounded bg-slate-900 px-3 py-1 text-white disabled:opacity-50"
-                    onClick={() => bookSlotMutation.mutate(slot.start)}
+                    onClick={async () => {
+                      await bookSlotMutation.mutateAsync(slot.start)
+                    }}
                     disabled={disabled}
                   >
                     Book

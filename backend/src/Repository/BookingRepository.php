@@ -36,7 +36,7 @@ class BookingRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-    public function findConflictingActiveBooking(int $providerId, \DateTimeImmutable $start, \DateTimeImmutable $end, int $lockMode = LockMode::NONE): ?Booking
+    public function findConflictingActiveBooking(int $providerId, \DateTimeImmutable $start, \DateTimeImmutable $end, LockMode|int $lockMode = LockMode::NONE): ?Booking
     {
         $query = $this->createQueryBuilder('b')
             ->andWhere('b.provider = :providerId')
@@ -50,7 +50,9 @@ class BookingRepository extends ServiceEntityRepository
             ->setMaxResults(1)
             ->getQuery();
 
-        if ($lockMode !== LockMode::NONE) {
+        $isNone = $lockMode instanceof LockMode ? $lockMode === LockMode::NONE : $lockMode === 0;
+
+        if (! $isNone) {
             $query->setLockMode($lockMode);
         }
 

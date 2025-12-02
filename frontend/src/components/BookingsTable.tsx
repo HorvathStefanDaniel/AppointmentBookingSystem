@@ -4,9 +4,10 @@ type Props = {
   bookings: Booking[]
   onCancel?: (bookingId: number) => void
   canCancel?: (booking: Booking) => boolean
+  cancellingIds?: number[]
 }
 
-export const BookingsTable = ({ bookings, onCancel, canCancel }: Props) => {
+export const BookingsTable = ({ bookings, onCancel, canCancel, cancellingIds = [] }: Props) => {
   if (bookings.length === 0) {
     return <p>No bookings to display.</p>
   }
@@ -42,10 +43,11 @@ export const BookingsTable = ({ bookings, onCancel, canCancel }: Props) => {
                 <td className="px-4 py-2 text-right">
                   {canCancel?.(booking) && booking.status === 'active' ? (
                     <button
-                      className="rounded border border-red-500 px-3 py-1 text-red-600"
+                      className="rounded border border-red-500 px-3 py-1 text-red-600 disabled:opacity-50"
                       onClick={() => onCancel(booking.id)}
+                      disabled={cancellingIds.includes(booking.id)}
                     >
-                      Cancel
+                      {cancellingIds.includes(booking.id) ? 'Cancelling…' : 'Cancel'}
                     </button>
                   ) : (
                     <span className="text-xs text-slate-400">—</span>

@@ -13,6 +13,7 @@ export type Slot = {
   start: string
   end: string
   available: boolean
+  optimistic?: boolean
 }
 
 export type Booking = {
