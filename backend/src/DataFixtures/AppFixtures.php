@@ -100,6 +100,12 @@ final class AppFixtures extends Fixture
         $admin->setPassword($this->passwordHasher->hashPassword($admin, '12344321'));
         $manager->persist($admin);
 
+        $postmanAdmin = new User();
+        $postmanAdmin->setEmail('postman@example.com');
+        $postmanAdmin->setRoles(['R_ADMIN']);
+        $postmanAdmin->setPassword($this->passwordHasher->hashPassword($postmanAdmin, 'postman1'));
+        $manager->persist($postmanAdmin);
+
         $providerUser = new User();
         $providerUser->setEmail('provider@example.com');
         $providerUser->setRoles(['R_PROVIDER']);
@@ -145,6 +151,26 @@ final class AppFixtures extends Fixture
 
                 $manager->persist($booking);
             }
+        }
+
+        $janStart = new DateTimeImmutable('2026-01-05 09:00:00');
+        $providerCount = count($providers);
+        $serviceCount = count($services);
+
+        for ($i = 0; $i < 10; ++$i) {
+            $provider = $providers[$i % $providerCount];
+            $service = $services[$i % $serviceCount];
+            $start = $janStart->modify(sprintf('+%d days', $i));
+
+            $booking = new Booking();
+            $booking->setUser($consumer);
+            $booking->setProvider($provider);
+            $booking->setService($service);
+            $booking->setStartDateTime($start);
+            $booking->setEndDateTime($start->add(new DateInterval(sprintf('PT%dM', $service->getDurationMinutes()))));
+            $booking->setStatus(Booking::STATUS_ACTIVE);
+
+            $manager->persist($booking);
         }
     }
 }

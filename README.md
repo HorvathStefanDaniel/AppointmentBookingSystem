@@ -1,82 +1,108 @@
 # Harba Appointment Booking System
 
-WIP monorepo for the Harba Fullstack Developer case study. The goal is to deliver a containerised Symfony (PHP 8.2) + React/Vite (TypeScript) application that exposes a secure booking API and a minimal frontend that consumes it.
+Containerised Symfony 6.4 + React/Vite implementation of the Harba Fullstack Developer case study. The backend exposes a JWT-protected REST API (providers, services, bookings, slot holds) and the frontend consumes those endpoints with role-aware UX for consumers, providers and admins.
 
 ## Project structure
 
 ```
 .
-├── backend/     # Symfony application (API, Doctrine, JWT auth)
-├── frontend/    # React + Vite client that talks to the API
+├── backend/     # Symfony application (Doctrine, JWT, Nelmio/Swagger)
+├── frontend/    # React + Vite client
 ├── docker/      # PHP & Caddy images + config
 ├── docker-compose.yml
 ├── .env.example # Backend + frontend env variables
-└── TODO.md      # Detailed implementation plan
+└── TODO.md      # Detailed implementation plan / status
 ```
 
-## Getting started (Docker)
+## Quick start
 
-1. Copy environment defaults:
+1. **Prerequisites**: Docker Desktop (or any recent Docker engine) running locally.
+2. **One-shot setup (Windows)**: double-click `setup.bat`. The script copies env files, builds containers, installs Composer/NPM deps, runs migrations, generates JWT keys and loads fixtures.
+3. **Manual setup (all platforms)**:
    ```powershell
-   Copy-Item .env.example .env
-   ```
-   Edit `.env` to match your local setup (e.g. `DEFAULT_URI`, `CORS_ALLOW_ORIGIN`, database credentials).
-2. Build & start the stack (php-fpm, Caddy, MySQL, Vite dev server):
-   ```powershell
-   docker compose up --build
-   ```
-3. Install backend dependencies and bootstrap Symfony (after the first `up`):
-   ```powershell
+   Copy-Item .env.example .env         # configure DEFAULT_URI, DB creds, etc.
+   docker compose up --build           # start php, Caddy, MySQL, Vite
    docker compose run --rm php composer install
-   ```
-4. Install frontend dependencies:
-   ```powershell
    docker compose run --rm frontend npm install
+   docker compose exec php php bin/console doctrine:migrations:migrate --no-interaction
+   docker compose exec php php bin/console doctrine:fixtures:load --no-interaction
    ```
+4. Frontend: http://localhost:5173  
+   Backend base URL: http://localhost:8080/api
 
-The API will be reachable at `http://localhost:8080/api`, and the frontend dev server at `http://localhost:5173`.
+### Sample users (fixtures)
 
-### Frontend workflow
-
-```
-cd frontend
-npm run dev      # start Vite dev server (http://localhost:5173)
-npm run build    # type-check + production bundle
-npm run preview  # preview production build
-```
-
-Environment variables:
-
-- `VITE_API_URL` (default `http://localhost:8080/api`)
-
-### UI & Tailwind
-
-- The React client ships with Tailwind CSS (see `frontend/tailwind.config.js`). Utility classes are available globally via `src/index.css`, and common patterns such as `.card`, `.panel`, `.input-field`, and `.btn-*` are defined in a `@layer components` block for reuse.
-- Adjust colors, fonts, or spacing tokens by editing the `extend` section in `tailwind.config.js`, then run `npm run build` (or `npm run dev`) to pick up the changes.
+| Email                   | Password  | Roles                         |
+| ----------------------- | --------- | ----------------------------- |
+| `admin@example.com`     | `12344321`| `R_ADMIN`                     |
+| `postman@example.com`   | `postman1`| `R_ADMIN` (debug/Postman user)|
+| `provider@example.com`  | `12344321`| `R_PROVIDER` (Alpha Marina)   |
+| `consumer1@example.com` | `12344321`| `R_CONSUMER`                  |
+| `consumer2@example.com` | `12344321`| `R_CONSUMER`                  |
 
 ### Backend testing
 
-```
+```powershell
 docker compose run --rm php php bin/phpunit
 ```
 
-### Seed demo data
+## API documentation
+- **POstman**: https://documenter.getpostman.com/view/23613570/2sB3dMxr34
+- **Swagger UI**: http://localhost:8080/api/docs  
+- **Raw OpenAPI JSON**: http://localhost:8080/api/docs.json  
+  (NelimioApiDocBundle autogenerates both; the UI is available as soon as the stack is up.)
 
+### Postman collection
+
+1. Create an environment with:
+   - `baseUrl = http://localhost:8080/api`
+   - `token = <empty>` (will be filled after login)
+2. Collection-level auth: **Bearer Token** → `{{token}}`.
+3. After calling `POST {{baseUrl}}/auth/login`, copy the `token` into the environment variable (or use a test script to set it automatically).
+
+Recommended folders/requests (all JSON bodies):
+| Folder | Requests |
+| --- | --- |
+| Auth | `POST /auth/register`, `POST /auth/login` |
+| Providers | `GET /providers`, `GET /providers/me`, `GET /providers/{id}/slots` |
+| Services | `GET /services`, `POST /services`, `PATCH /services/{id}`, `DELETE /services/{id}` |
+| Slots & Holds | `POST /bookings/holds`, `DELETE /bookings/holds/{id}` |
+| Bookings | `POST /bookings`, `GET /bookings/me`, `GET /bookings/providers/me`, `GET /bookings`, `DELETE /bookings/{id}` |
+
+## Environment variables
+
+Copy `.env.example` to `.env` (root) to configure:
+- `DEFAULT_URI` – public base URL (used in Swagger server list).
+- `CORS_ALLOW_ORIGIN` – frontend origin (`http://localhost:5173` for dev).
+- `DATABASE_URL`, `JWT_PASSPHRASE`, etc.
+
+Frontend expects `VITE_API_URL` (already set in `.env.example`) to point to `http://localhost:8080/api`.
+
+## Useful commands
+
+```powershell
+# Start stack
+docker compose up --build
+
+# Run migrations
+docker compose exec php php bin/console doctrine:migrations:migrate --no-interaction
+
+# Reload fixtures / demo data
+docker compose exec php php bin/console doctrine:fixtures:load --no-interaction
+
+# Run frontend in dev mode (hot reload without Docker)
+cd frontend && npm run dev
 ```
-docker compose run --rm php php bin/console doctrine:fixtures:load
-```
 
-Seeded users:
+## Case study coverage
 
-- `admin@example.com` / `Password123!` (`R_ADMIN`)
-- `provider@example.com` / `Password123!` (`R_PROVIDER` linked to the first provider)
-- `consumer1@example.com` / `Password123!`, `consumer2@example.com` / `Password123!`
+- JWT auth with role-based access control (`R_CONSUMER`, `R_PROVIDER`, `R_ADMIN`).
+- Providers, services, working hours, slot generation and booking conflicts.
+- Slot holds (“reserved for you”) to prevent double-booking during confirmation.
+- REST API consumed by the React frontend (no hard-coded data).
+- Dockerised stack (`docker compose up --build`) and Windows-friendly `setup.bat`.
+- PHPUnit coverage for auth, slot generation, booking manager, voters, etc.
+- API documentation delivered via Swagger (`/api/docs`) plus Postman guidance above.
 
-### API reference
-
-- `/api/auth/register` / `/api/auth/login` return JWTs (Authorization: Bearer).
-- `/api/providers` list providers, `/api/services` manage global service definitions (admin create/update/delete).
-- `/api/providers/:id/slots?serviceId=…&from=YYYY-MM-DD&to=YYYY-MM-DD` lists availability.
-- `/api/bookings` create/cancel bookings (`POST` expects `serviceId`, `providerId`, `startDateTime`); `/api/bookings/me`, `/api/bookings/providers/:id`, `/api/bookings` (admin) provide role-scoped listings.
-- Swagger / OpenAPI docs available at `http://localhost:8080/api/docs`.
+See `TODO.md` for remaining nice-to-haves (soft-delete option, Makefile scripts, final verification checklist).
 
