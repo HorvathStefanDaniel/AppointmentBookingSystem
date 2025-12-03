@@ -1,0 +1,257 @@
+{
+	"id": "f708defa-1421-4f1a-94ec-830ab20fae11",
+	"name": "Harba booking",
+	"timestamp": "2025-12-03T11:24:45.885Z",
+	"collection_id": "23613570-2f43a32d-aedf-401c-b6d1-8791eba913da",
+	"folder_id": 0,
+	"environment_id": "23613570-dc496c46-837b-4ea9-87b7-9ad5852aa4d7",
+	"totalPass": 2,
+	"delay": 0,
+	"persist": true,
+	"status": "finished",
+	"startedAt": "2025-12-03T11:24:10.338Z",
+	"totalFail": 0,
+	"results": [
+		{
+			"id": "1cd606ec-f1ec-46ca-b1a7-dc220ed72e44",
+			"name": "Register",
+			"url": "http://localhost:8080/api/auth/register",
+			"time": 7641,
+			"responseCode": {
+				"code": 201,
+				"name": "Created"
+			},
+			"tests": {
+				"Status code is 201 (creation) for successful registration": true,
+				"Log response body when status is not 200": true
+			},
+			"testPassFailCounts": {
+				"Status code is 201 (creation) for successful registration": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Log response body when status is not 200": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				7641
+			],
+			"allTests": [
+				{
+					"Status code is 201 (creation) for successful registration": true,
+					"Log response body when status is not 200": true
+				}
+			]
+		},
+		{
+			"id": "75e2cca4-f8cb-4891-9af7-5d2fc88ab9ad",
+			"name": "Login",
+			"url": "http://localhost:8080/api/auth/login",
+			"time": 3986,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				3986
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "e8e8c442-779c-4cf5-9b96-e14dd80487cd",
+			"name": "Generates slots for a provider/service",
+			"url": "http://localhost:8080/api/providers/1/slots?serviceId=1&from=2025-12-01&to=2025-12-20",
+			"time": 2764,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				2764
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "6887074a-41f4-47d0-af5b-1d00d731b025",
+			"name": "List all providers",
+			"url": "http://localhost:8080/api/providers",
+			"time": 2421,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				2421
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "719d6e11-e596-4a21-9c2a-0a3e33ba4bd0",
+			"name": "providers for provider user",
+			"url": "http://localhost:8080/api/providers/1/slots?serviceId=1&from=2025-12-01&to=2025-12-20",
+			"time": 1508,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				1508
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "857152c1-9fb8-412d-9d33-26017ddf4964",
+			"name": "List all services",
+			"url": "http://localhost:8080/api/services",
+			"time": 2310,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				2310
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "624276a0-23b6-4ef4-848c-3f1224cb14e3",
+			"name": "Hold booking",
+			"url": "http://localhost:8080/api/bookings/holds",
+			"time": 2214,
+			"responseCode": {
+				"code": 201,
+				"name": "Created"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				2214
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "406faf7e-44f2-42d6-92e3-1c6d5484abcd",
+			"name": "Take booking",
+			"url": "http://localhost:8080 /api/bookings",
+			"time": 3253,
+			"responseCode": {
+				"code": 201,
+				"name": "Created"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				3253
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "2dc36c63-8a3b-4a59-b92a-612b42c67c5d",
+			"name": "Cancel booking",
+			"url": "http://localhost:8080 /api/bookings/1",
+			"time": 3756,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				3756
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "55ea1d1d-66f6-4ce2-96e8-1be10e2333a8",
+			"name": "Get all bookings  (admin)",
+			"url": "http://localhost:8080 /api/bookings",
+			"time": 3917,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				3917
+			],
+			"allTests": [
+				{}
+			]
+		}
+	],
+	"count": 1,
+	"totalTime": 33770,
+	"collection": {
+		"requests": [
+			{
+				"id": "1cd606ec-f1ec-46ca-b1a7-dc220ed72e44",
+				"method": "POST"
+			},
+			{
+				"id": "75e2cca4-f8cb-4891-9af7-5d2fc88ab9ad",
+				"method": "POST"
+			},
+			{
+				"id": "e8e8c442-779c-4cf5-9b96-e14dd80487cd",
+				"method": "GET"
+			},
+			{
+				"id": "6887074a-41f4-47d0-af5b-1d00d731b025",
+				"method": "GET"
+			},
+			{
+				"id": "719d6e11-e596-4a21-9c2a-0a3e33ba4bd0",
+				"method": "GET"
+			},
+			{
+				"id": "857152c1-9fb8-412d-9d33-26017ddf4964",
+				"method": "GET"
+			},
+			{
+				"id": "624276a0-23b6-4ef4-848c-3f1224cb14e3",
+				"method": "POST"
+			},
+			{
+				"id": "406faf7e-44f2-42d6-92e3-1c6d5484abcd",
+				"method": "POST"
+			},
+			{
+				"id": "2dc36c63-8a3b-4a59-b92a-612b42c67c5d",
+				"method": "DELETE"
+			},
+			{
+				"id": "55ea1d1d-66f6-4ce2-96e8-1be10e2333a8",
+				"method": "GET"
+			}
+		]
+	}
+}
