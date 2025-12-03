@@ -86,5 +86,3 @@ cd frontend && npm run dev
 - PHPUnit coverage for auth, slot generation, booking manager, voters, etc.
 - API documentation delivered via Swagger (`/api/docs`) plus Postman guidance above.
 
-See `TODO.md` for remaining nice-to-haves (soft-delete option, Makefile scripts, final verification checklist).
-
