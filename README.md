@@ -94,6 +94,8 @@ Copy `.env.example` to `.env` (root) to configure:
 - `DATABASE_URL`, `JWT_PASSPHRASE`, etc.
 
 Frontend expects `VITE_API_URL` (already set in `.env.example`) to point to `http://localhost:8080/api`.
+## Database
+The MYSQL database can be accessed using for example HeidiSQL, and connecting to the docker with 127.0.0.1, 3307, root + root 
 
 ## Useful commands
 
