@@ -43,7 +43,42 @@ Containerised Symfony 6.4 + React/Vite implementation of the Harba Fullstack Dev
 
 ```powershell
 docker compose run --rm php php bin/phpunit
+
+docker compose exec php php bin/phpunit --testdox
+PHPUnit 11.5.45 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.29
+Configuration: /var/www/html/phpunit.dist.xml
+
+...........                                                    
+   11 / 11 (100%)
+
+Time: 00:30.900, Memory: 50.50 MB
+
+Auth Controller (App\Tests\Functional\AuthController)
+ ✔ Register creates user
+ ✔ Login returns jwt
+
+Booking Manager (App\Tests\Service\BookingManager)
+ ✔ Book from hold creates booking and removes hold
+ ✔ Book from hold fails for expired hold
+
+Booking Voter (App\Tests\Security\BookingVoter)
+ ✔ Admin can manage any booking
+ ✔ Provider can manage bookings for own provider
+ ✔ Provider cannot manage bookings for other providers
+
+Slot Generator (App\Tests\Service\SlotGenerator)
+ ✔ Generate returns available slots
+ ✔ Generate skips conflicting bookings
+
+Slot Hold Manager (App\Tests\Service\SlotHoldManager)
+ ✔ Create hold persists entity and sets expiry
+ ✔ Create hold rejects conflicting reservation
+
+OK (11 tests, 38 assertions)
 ```
+
 
 ## API documentation
 - **POstman**: https://documenter.getpostman.com/view/23613570/2sB3dMxr34
