@@ -51,23 +51,6 @@ docker compose run --rm php php bin/phpunit
 - **Raw OpenAPI JSON**: http://localhost:8080/api/docs.json  
   (NelimioApiDocBundle autogenerates both; the UI is available as soon as the stack is up.)
 
-### Postman collection
-
-1. Create an environment with:
-   - `baseUrl = http://localhost:8080/api`
-   - `token = <empty>` (will be filled after login)
-2. Collection-level auth: **Bearer Token** → `{{token}}`.
-3. After calling `POST {{baseUrl}}/auth/login`, copy the `token` into the environment variable (or use a test script to set it automatically).
-
-Recommended folders/requests (all JSON bodies):
-| Folder | Requests |
-| --- | --- |
-| Auth | `POST /auth/register`, `POST /auth/login` |
-| Providers | `GET /providers`, `GET /providers/me`, `GET /providers/{id}/slots` |
-| Services | `GET /services`, `POST /services`, `PATCH /services/{id}`, `DELETE /services/{id}` |
-| Slots & Holds | `POST /bookings/holds`, `DELETE /bookings/holds/{id}` |
-| Bookings | `POST /bookings`, `GET /bookings/me`, `GET /bookings/providers/me`, `GET /bookings`, `DELETE /bookings/{id}` |
-
 ## Environment variables
 
 Copy `.env.example` to `.env` (root) to configure:
