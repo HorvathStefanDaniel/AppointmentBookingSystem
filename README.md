@@ -30,7 +30,7 @@ Containerised Symfony 6.4 + React/Vite implementation of the Harba Fullstack Dev
 4. Frontend: http://localhost:5173  
    Backend base URL: http://localhost:8080/api
 
-### Sample users (fixtures)
+### Sample users
 
 | Email                   | Password  | Roles                         |
 | ----------------------- | --------- | ----------------------------- |
