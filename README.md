@@ -11,7 +11,6 @@ Containerised Symfony 6.4 + React/Vite implementation of the Harba Fullstack Dev
 ├── docker/      # PHP & Caddy images + config
 ├── docker-compose.yml
 ├── .env.example # Backend + frontend env variables
-└── TODO.md      # Detailed implementation plan / status
 ```
 
 ## Quick start
