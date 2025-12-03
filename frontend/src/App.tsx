@@ -7,6 +7,7 @@ import { ProviderDetailPage } from './pages/ProviderDetailPage'
 import { MyBookingsPage } from './pages/MyBookingsPage'
 import { ProviderBookingsPage } from './pages/ProviderBookingsPage'
 import { AdminBookingsPage } from './pages/AdminBookingsPage'
+import { AccountPage } from './pages/AccountPage'
 import { ProtectedRoute } from './components/ProtectedRoute'
 
 function App() {
@@ -29,6 +30,14 @@ function App() {
           element={
             <ProtectedRoute>
               <ProviderDetailPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/account"
+          element={
+            <ProtectedRoute>
+              <AccountPage />
             </ProtectedRoute>
           }
         />

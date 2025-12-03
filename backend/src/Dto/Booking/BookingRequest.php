@@ -17,5 +17,8 @@ class BookingRequest
     #[Assert\NotBlank]
     #[Assert\DateTime(format: 'Y-m-d\TH:i:sP')]
     public ?string $startDateTime = null;
+
+    #[Assert\Positive]
+    public ?int $holdId = null;
 }
 

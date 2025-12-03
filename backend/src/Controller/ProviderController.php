@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\User;
 use App\Http\ProblemResponseFactory;
 use App\Repository\ProviderRepository;
 use App\Repository\ServiceRepository;
@@ -25,6 +26,19 @@ class ProviderController extends AbstractController
     #[Route('', name: 'list', methods: ['GET'])]
     public function list(): JsonResponse
     {
+        $user = $this->getUser();
+        if ($user instanceof User && $this->isProviderOnly($user)) {
+            $provider = $user->getProvider();
+            if (null === $provider) {
+                return $this->problems->create(JsonResponse::HTTP_BAD_REQUEST, 'You are not assigned to a provider.');
+            }
+
+            return $this->json([[
+                'id' => $provider->getId(),
+                'name' => $provider->getName(),
+            ]]);
+        }
+
         $providers = $this->providerRepository->findAll();
 
         $data = array_map(static fn ($provider) => [
@@ -35,12 +49,38 @@ class ProviderController extends AbstractController
         return $this->json($data);
     }
 
+    #[Route('/me', name: 'me', methods: ['GET'])]
+    public function myProvider(): JsonResponse
+    {
+        $user = $this->getUser();
+        if (!$user instanceof User || !in_array('R_PROVIDER', $user->getRoles(), true)) {
+            return $this->problems->create(JsonResponse::HTTP_FORBIDDEN, 'Provider role required.');
+        }
+
+        $provider = $user->getProvider();
+        if (null === $provider) {
+            return $this->problems->create(JsonResponse::HTTP_BAD_REQUEST, 'You are not assigned to a provider.');
+        }
+
+        return $this->json([
+            'id' => $provider->getId(),
+            'name' => $provider->getName(),
+        ]);
+    }
+
     #[Route('/{id}/slots', name: 'slots', methods: ['GET'])]
     public function slots(int $id, Request $request): JsonResponse
     {
         $provider = $this->providerRepository->find($id);
         if (null === $provider) {
             return $this->problems->create(JsonResponse::HTTP_NOT_FOUND, 'Provider not found.');
+        }
+
+        $user = $this->getUser();
+        if ($user instanceof User && $this->isProviderOnly($user)) {
+            if ($user->getProvider()?->getId() !== $provider->getId()) {
+                return $this->problems->create(JsonResponse::HTTP_FORBIDDEN, 'Access denied.');
+            }
         }
 
         $serviceId = (int) $request->query->get('serviceId');
@@ -81,6 +121,15 @@ class ProviderController extends AbstractController
             'to' => $to->format('Y-m-d'),
             'slots' => $slots,
         ]);
+    }
+
+    private function isProviderOnly(User $user): bool
+    {
+        $roles = $user->getRoles();
+        $isProvider = in_array('R_PROVIDER', $roles, true);
+        $isAdmin = in_array('R_ADMIN', $roles, true);
+
+        return $isProvider && !$isAdmin;
     }
 }
 

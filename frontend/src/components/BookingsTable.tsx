@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import type { Booking } from '../types'
+import { ConfirmDialog } from './ConfirmDialog'
 
 type Props = {
   bookings: Booking[]
@@ -8,6 +10,8 @@ type Props = {
 }
 
 export const BookingsTable = ({ bookings, onCancel, canCancel, cancellingIds = [] }: Props) => {
+  const [pendingCancelId, setPendingCancelId] = useState<number | null>(null)
+  const [dialogMessage, setDialogMessage] = useState<string>('')
   if (bookings.length === 0) {
     return <p>No bookings to display.</p>
   }
@@ -44,7 +48,15 @@ export const BookingsTable = ({ bookings, onCancel, canCancel, cancellingIds = [
                   {canCancel?.(booking) && booking.status === 'active' ? (
                     <button
                       className="rounded border border-red-500 px-3 py-1 text-red-600 disabled:opacity-50"
-                      onClick={() => onCancel(booking.id)}
+                      onClick={() => {
+                        if (!onCancel) return
+                        setPendingCancelId(booking.id)
+                        setDialogMessage(
+                          `Cancel "${booking.service.name}" on ${new Date(
+                            booking.startDateTime
+                          ).toLocaleString()}?`
+                        )
+                      }}
                       disabled={cancellingIds.includes(booking.id)}
                     >
                       {cancellingIds.includes(booking.id) ? 'Cancelling…' : 'Cancel'}
@@ -58,6 +70,19 @@ export const BookingsTable = ({ bookings, onCancel, canCancel, cancellingIds = [
           ))}
         </tbody>
       </table>
+      <ConfirmDialog
+        open={pendingCancelId !== null}
+        title="Cancel booking?"
+        message={dialogMessage}
+        confirmLabel="Yes, cancel"
+        onCancel={() => setPendingCancelId(null)}
+        onConfirm={() => {
+          if (pendingCancelId !== null && onCancel) {
+            onCancel(pendingCancelId)
+          }
+          setPendingCancelId(null)
+        }}
+      />
     </div>
   )
 }

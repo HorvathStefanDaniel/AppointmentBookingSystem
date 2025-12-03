@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useState } from 'react'
 import api from '../api/client'
 import type { Booking } from '../types'
 import { BookingsTable } from '../components/BookingsTable'
@@ -13,9 +14,14 @@ const fetchMyBookings = async (): Promise<Booking[]> => {
 export const MyBookingsPage = () => {
   const queryClient = useQueryClient()
   const { addToast } = useToast()
+  const [pendingCancelIds, setPendingCancelIds] = useState<number[]>([])
+  const queryKey = ['bookings', 'me'] as const
   const { data, isLoading, error } = useQuery({
-    queryKey: ['bookings', 'me'],
+    queryKey,
     queryFn: fetchMyBookings,
+    staleTime: 0,
+    placeholderData: (previous) => previous,
+    refetchOnWindowFocus: true,
   })
 
   const cancelMutation = useMutation({
@@ -25,18 +31,39 @@ export const MyBookingsPage = () => {
     },
     onMutate: async (bookingId: number) => {
       addToast('Cancelling booking…')
-      return bookingId
+      setPendingCancelIds((prev) => [...prev, bookingId])
+      await queryClient.cancelQueries({ queryKey })
+      const previous = queryClient.getQueryData<Booking[]>(queryKey)
+      queryClient.setQueryData<Booking[]>(queryKey, (old = []) =>
+        old.map((booking) =>
+          booking.id === bookingId ? { ...booking, status: 'cancelled' } : booking
+        )
+      )
+      return { previous, bookingId }
     },
-    onError: (mutationError) => {
+    onError: (mutationError, _bookingId, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(queryKey, context.previous)
+      }
+      if (context?.bookingId) {
+        setPendingCancelIds((prev) => prev.filter((id) => id !== context.bookingId))
+      }
       addToast(getErrorMessage(mutationError, 'Could not cancel booking'))
     },
-    onSuccess: () => {
+    onSuccess: (_, __, context) => {
       addToast('Booking cancelled')
-      queryClient.invalidateQueries({ queryKey: ['bookings', 'me'] })
+      if (context?.bookingId) {
+        setPendingCancelIds((prev) => prev.filter((id) => id !== context.bookingId))
+      }
+      queryClient.invalidateQueries({ queryKey })
+    },
+    onSettled: (_data, _error, _variables, context) => {
+      if (context?.bookingId) {
+        setPendingCancelIds((prev) => prev.filter((id) => id !== context.bookingId))
+      }
+      queryClient.invalidateQueries({ queryKey })
     },
   })
-
-  const cancellingIds = cancelMutation.variables ? [cancelMutation.variables] : []
 
   return (
     <div className="space-y-4">
@@ -48,7 +75,7 @@ export const MyBookingsPage = () => {
           bookings={data}
           onCancel={(id) => cancelMutation.mutate(id)}
           canCancel={() => true}
-          cancellingIds={cancellingIds}
+          cancellingIds={pendingCancelIds}
         />
       )}
     </div>

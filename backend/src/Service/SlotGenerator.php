@@ -5,14 +5,20 @@ namespace App\Service;
 use App\Entity\Booking;
 use App\Entity\Provider;
 use App\Entity\Service;
+use App\Entity\SlotHold;
 use App\Repository\BookingRepository;
 use App\Repository\ProviderWorkingHoursRepository;
+use App\Repository\SlotHoldRepository;
 
 class SlotGenerator
 {
+    private ?int $lastPurgeTimestamp = null;
+    private const PURGE_INTERVAL_SECONDS = 5;
+
     public function __construct(
         private readonly ProviderWorkingHoursRepository $workingHoursRepository,
         private readonly BookingRepository $bookingRepository,
+        private readonly SlotHoldRepository $slotHoldRepository,
     ) {
     }
 
@@ -39,7 +45,15 @@ class SlotGenerator
         $searchStart = $from->setTime(0, 0);
         $searchEnd = $to->setTime(23, 59, 59);
 
+        $this->purgeExpiredIfNeeded();
+
         $bookings = $this->bookingRepository->findActiveBookingsForProviderBetween(
+            $provider->getId(),
+            $searchStart,
+            $searchEnd->modify('+1 minute')
+        );
+
+        $holds = $this->slotHoldRepository->findActiveHoldsForProviderBetween(
             $provider->getId(),
             $searchStart,
             $searchEnd->modify('+1 minute')
@@ -48,10 +62,15 @@ class SlotGenerator
         $serviceDuration = $service->getDurationMinutes() ?? 30;
         $slotLength = 30;
 
-        $busyWindows = array_map(static fn (Booking $booking) => [
+        $holdWindows = array_map(static fn (SlotHold $hold) => [
+            'start' => $hold->getStartDateTime(),
+            'end' => $hold->getEndDateTime(),
+        ], $holds);
+
+        $busyWindows = array_merge(array_map(static fn (Booking $booking) => [
             'start' => $booking->getStartDateTime(),
             'end' => $booking->getEndDateTime(),
-        ], $bookings);
+        ], $bookings), $holdWindows);
 
         $result = [];
         $currentDate = $searchStart;
@@ -123,6 +142,17 @@ class SlotGenerator
         }
 
         return false;
+    }
+    private function purgeExpiredIfNeeded(): void
+    {
+        $now = new \DateTimeImmutable();
+        if ($this->lastPurgeTimestamp !== null
+            && ($now->getTimestamp() - $this->lastPurgeTimestamp) < self::PURGE_INTERVAL_SECONDS) {
+            return;
+        }
+
+        $this->slotHoldRepository->purgeExpired($now);
+        $this->lastPurgeTimestamp = $now->getTimestamp();
     }
 }
 

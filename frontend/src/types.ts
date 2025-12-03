@@ -14,6 +14,7 @@ export type Slot = {
   end: string
   available: boolean
   optimistic?: boolean
+  reservedByMe?: boolean
 }
 
 export type Booking = {
@@ -36,8 +37,10 @@ export type Booking = {
 
 export type AuthClaims = {
   email?: string
+  username?: string
   roles?: string[]
   providerId?: number
+  userId?: number
   exp?: number
   [key: string]: unknown
 }

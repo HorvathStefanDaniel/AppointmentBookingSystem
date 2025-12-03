@@ -23,6 +23,7 @@ class JWTCreatedSubscriber implements EventSubscriberInterface
         }
 
         $data = $event->getData();
+        $data['userId'] = $user->getId();
         $data['roles'] = $user->getRoles();
 
         $provider = $user->getProvider();

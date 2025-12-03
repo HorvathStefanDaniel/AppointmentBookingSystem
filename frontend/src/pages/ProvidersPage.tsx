@@ -1,24 +1,51 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import api from '../api/client'
 import type { Provider } from '../types'
+import { useAuth } from '../auth/AuthContext'
+import { getErrorMessage } from '../utils/errors'
 
 const fetchProviders = async (): Promise<Provider[]> => {
   const { data } = await api.get<Provider[]>('/providers')
   return data
 }
 
+const fetchMyProviders = async (): Promise<Provider[]> => {
+  const { data } = await api.get<Provider>('/providers/me')
+  return [data]
+}
+
 export const ProvidersPage = () => {
-  const { data, isLoading, error } = useQuery({
-    queryKey: ['providers'],
-    queryFn: fetchProviders,
+  const { claims } = useAuth()
+  const roles = claims?.roles ?? []
+  const isProviderUser = roles.includes('R_PROVIDER')
+
+  const {
+    data,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ['providers', isProviderUser ? 'self' : 'all'],
+    queryFn: () => (isProviderUser ? fetchMyProviders() : fetchProviders()),
   })
   const [search, setSearch] = useState('')
 
-  const providers = (data ?? []).filter((provider) =>
+  const baseProviders = useMemo(() => data ?? [], [data])
+
+  const providers = baseProviders.filter((provider) =>
     provider.name.toLowerCase().includes(search.toLowerCase())
   )
+
+  if (isProviderUser && error) {
+    return (
+      <div className="panel space-y-3 border-red-200 bg-red-50 text-sm text-red-700">
+        <h1 className="text-base font-semibold text-red-800">Provider access issue</h1>
+        <p>{getErrorMessage(error, 'Your account is not linked to a provider.')}</p>
+        <p>Please ask an administrator to attach your account to the correct provider.</p>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">

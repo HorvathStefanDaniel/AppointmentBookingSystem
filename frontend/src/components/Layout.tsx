@@ -3,6 +3,7 @@ import { useAuth } from '../auth/AuthContext'
 
 export const Layout = () => {
   const { isAuthenticated, claims, logout } = useAuth()
+  const displayName = claims?.email ?? (claims?.username as string | undefined) ?? 'My account'
   const roles = claims?.roles ?? []
 
   return (
@@ -38,9 +39,12 @@ export const Layout = () => {
           <div className="flex items-center gap-3">
             {isAuthenticated ? (
               <>
-                <span className="rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-600">
-                  {claims?.email}
-                </span>
+                <Link
+                  to="/account"
+                  className="rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-600 transition hover:bg-slate-200"
+                >
+                  {displayName}
+                </Link>
                 <button className="btn-secondary" onClick={logout}>
                   Logout
                 </button>
