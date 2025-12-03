@@ -27,6 +27,8 @@ final class AppFixtures extends Fixture
         $providers = $this->createProviders($manager);
         $services = $this->createServices($manager);
         $this->createUsers($manager, $providers);
+        $manager->flush();
+        
         $this->createSampleBookings($manager, $providers, $services);
 
         $manager->flush();
